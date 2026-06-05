@@ -83,8 +83,6 @@ def add_user():
         db.session.rollback()
         return {"Error":e},500
     
-
-
 @app.route("/users")
 def list_users():
     try:
@@ -141,6 +139,10 @@ def update_user(id:int):
         return {"Error":e},500
 
 if __name__ == '__main__':
-    #with app.app_context():
-    #    db.create_all()
+    with app.app_context():
+        try:
+            db.create_all()
+            print("Database tables created successfully")
+        except Exception as e:
+            print(f"Error creating database tables: {e}")
     app.run(debug=True)
