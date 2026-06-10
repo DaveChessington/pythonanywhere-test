@@ -1,6 +1,6 @@
 
 from flask_sqlalchemy import SQLAlchemy
- 
+
 db = SQLAlchemy()
 
 class User(db.Model):
@@ -20,7 +20,7 @@ class User(db.Model):
 
     def __repr__(self):
         return f"<User {self.name}>"
-    
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -30,7 +30,7 @@ class User(db.Model):
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None
         }
-    
+
     def get_attribute(self, attr):
         for a in User.__table__.columns.keys():
             if a.lower() == attr.lower():
