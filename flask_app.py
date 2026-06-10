@@ -64,7 +64,7 @@ def login():
     else:
         return flask.jsonify({"Error": "Invalid credentials"})
 
-@app.route('/users/add', methods=["POST"])
+@app.route('/users', methods=["POST"])
 def add_user():
     data = flask.request.get_json()
     if not data:
@@ -123,7 +123,7 @@ def delete_user(id:int):
 def update_user(id:int):
     data = flask.request.get_json()
     try:
-        usuario=search_user(id)
+        usuario=User.query.get(id)
         if not data:
             return {"Error": "No se proporcionaron datos en formato JSON"}, 400
         name=data.get("name")
@@ -136,7 +136,7 @@ def update_user(id:int):
         return {"message":f"successfully updated user {usuario.name}"},200
     except Exception as e:
         db.session.rollback()
-        return {"Error":e},500
+        return {"Error":str(e)},500
 
 if __name__ == '__main__':
     with app.app_context():
