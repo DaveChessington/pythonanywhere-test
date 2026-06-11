@@ -13,6 +13,7 @@ app = Flask(__name__)
 # permitido por PythonAnywhere para cuentas gratuitas.
 #pymysql.install_as_MySQLdb()
 
+'''
 # CONFIGURACIÓN MANUAL DIRECTA SIN VARIABLES DE ENTORNO
 TIDB_USER = "e8Jj9F55h2GELMP.root"
 TIDB_PASS = "D1EHsdGHS2nJsskD"
@@ -36,9 +37,9 @@ tunnel.start()
 
 # Ahora nos conectamos a nuestro propio puerto local asignado dinámicamente por el túnel
 app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{TIDB_USER}:{TIDB_PASS}@127.0.0.1:{tunnel.local_bind_port}/{TIDB_NAME}"
+'''
 
-#app.config.from_object(DevelopmentConfig)
-db.init_app(app)
+app.config.from_object(DevelopmentConfig)
 
 @app.route('/')
 def hello_world():
@@ -139,7 +140,12 @@ def update_user(id:int):
         db.session.rollback()
         return {"Error":str(e)},500
 
-#if __name__ == '__main__':
-    #with app.app_context():
-    #    db.create_all()
-#    app.run(debug=True)
+if __name__ == '__main__':
+    db.init_app(app)
+    with app.app_context():
+        try:
+            db.create_all()
+            print("Database tables created successfully")
+        except Exception as e:
+            print(f"Error creating database tables: {e}")
+    app.run(debug=True)
