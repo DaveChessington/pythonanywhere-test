@@ -140,6 +140,7 @@ def update_user(id:int):
         db.session.rollback()
         return {"Error":str(e)},500
 
+"""
 if __name__ == '__main__':
     db.init_app(app)
     with app.app_context():
@@ -148,4 +149,4 @@ if __name__ == '__main__':
             print("Database tables created successfully")
         except Exception as e:
             print(f"Error creating database tables: {e}")
-    app.run(debug=True)
+    app.run(debug=True)"""
