@@ -1,8 +1,7 @@
 
 import flask
 from flask import Flask
-from sshtunnel import SSHTunnelForwarder
-import paramiko
+
 
 from config import DevelopmentConfig
 from models import db,User
@@ -14,6 +13,8 @@ app = Flask(__name__)
 #pymysql.install_as_MySQLdb()
 
 '''
+from sshtunnel import SSHTunnelForwarder
+import paramiko
 # CONFIGURACIÓN MANUAL DIRECTA SIN VARIABLES DE ENTORNO
 TIDB_USER = "e8Jj9F55h2GELMP.root"
 TIDB_PASS = "D1EHsdGHS2nJsskD"
@@ -83,15 +84,15 @@ def add_user():
         db.session.rollback()
         return {"Error":e},500
 
-
-
 @app.route("/users")
 def list_users():
-    try:
-        if flask.request.args.get("filter"):
-            db.session.execute(db.select(User).filter_by(User.get_attribute(flask.request.args.get("filter"))==flask.request.args.get("value")))
+    try:   
+        filtro_columna = flask.request.args.get("filter")
+        filtro_valor = flask.request.args.get("value")
+        if filtro_columna and filtro_valor:
+            users = User.query.filter(getattr(User, filtro_columna) == filtro_valor).all()
         else:
-            users=User.query.all()
+            users = User.query.all()
         return {"users":[user.to_dict() for user in users]},200
     except Exception as e:
         return {"Error":str(e)},500
@@ -140,13 +141,14 @@ def update_user(id:int):
         db.session.rollback()
         return {"Error":str(e)},500
 
-"""
+db.init_app(app)
+
+""""
 if __name__ == '__main__':
-    db.init_app(app)
     with app.app_context():
         try:
             db.create_all()
             print("Database tables created successfully")
         except Exception as e:
             print(f"Error creating database tables: {e}")
-    app.run(debug=True)"""
+"""
