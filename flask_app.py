@@ -1,44 +1,11 @@
-
 import flask
 from flask import Flask
-
-
+from flask_migrate import Migrate
 from config import DevelopmentConfig
 from models import db,User
+import datetime
 
 app = Flask(__name__)
-
-# Forzamos a PyMySQL a desviar todo su tráfico a través del túnel proxy
-# permitido por PythonAnywhere para cuentas gratuitas.
-#pymysql.install_as_MySQLdb()
-
-'''
-from sshtunnel import SSHTunnelForwarder
-import paramiko
-# CONFIGURACIÓN MANUAL DIRECTA SIN VARIABLES DE ENTORNO
-TIDB_USER = "e8Jj9F55h2GELMP.root"
-TIDB_PASS = "D1EHsdGHS2nJsskD"
-TIDB_HOST = "://tidbcloud.com"
-TIDB_PORT = 4000
-TIDB_NAME = "escuela"
-
-if not hasattr(paramiko, 'DSSKey'):
-    paramiko.DSSKey = paramiko.PKey
-
-# CONFIGURACIÓN DEL TÚNEL SSH
-tunnel = SSHTunnelForwarder(
-    (TIDB_HOST, 22),  # TiDB por defecto acepta túneles en el puerto SSH estándar
-    ssh_username=TIDB_USER,
-    ssh_password=TIDB_PASS,
-    remote_bind_address=('127.0.0.1', TIDB_PORT)
-)
-
-# Arrancamos el túnel de red
-tunnel.start()
-
-# Ahora nos conectamos a nuestro propio puerto local asignado dinámicamente por el túnel
-app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{TIDB_USER}:{TIDB_PASS}@127.0.0.1:{tunnel.local_bind_port}/{TIDB_NAME}"
-'''
 
 app.config.from_object(DevelopmentConfig)
 
@@ -90,7 +57,18 @@ def list_users():
         filtro_columna = flask.request.args.get("filter")
         filtro_valor = flask.request.args.get("value")
         if filtro_columna and filtro_valor:
-            users = User.query.filter(getattr(User, filtro_columna) == filtro_valor).all()
+            filtro=getattr(User, filtro_columna)
+            if isinstance(filtro.type,(db.DateTime, db.Date)):
+                try:
+                    filtro_valor = datetime.datetime.strptime(filtro_valor, "%Y-%m-%dT%H:%M:%S")
+                    users = User.query.filter(filtro == filtro_valor).all()
+                except ValueError:
+                        fecha_inicio = datetime.datetime.strptime(filtro_valor, "%Y-%m-%d")
+                        fecha_fin = fecha_inicio + datetime.timedelta(days=1) - datetime.timedelta(seconds=1)
+                        
+                        users = User.query.filter(filtro.between(fecha_inicio, fecha_fin)).all()
+            else:
+                users = User.query.filter(filtro == filtro_valor).all()
         else:
             users = User.query.all()
         return {"users":[user.to_dict() for user in users]},200
@@ -143,7 +121,9 @@ def update_user(id:int):
 
 db.init_app(app)
 
-""""
+migrate = Migrate(app, db,compare_type=True)
+
+
 if __name__ == '__main__':
     with app.app_context():
         try:
@@ -151,4 +131,4 @@ if __name__ == '__main__':
             print("Database tables created successfully")
         except Exception as e:
             print(f"Error creating database tables: {e}")
-"""
+    app.run(debug=True)
