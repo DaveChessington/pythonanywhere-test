@@ -124,7 +124,20 @@ def update_user(id:int):
         db.session.rollback()
         return {"Error":str(e)},500
     
-@app.route("/users/<int:id>/profile_photo", methods=["POST"])
+@app.route("/users/profile_photo/<int:id>")
+def get_pic(id:int):
+    user = User.query.get(id)
+    if user:
+        try:
+            print(os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'],user.profile_photo)))
+            return flask.send_from_directory(app.config['UPLOAD_FOLDER'], user.profile_photo)
+        except Exception as e:
+            print(e)
+            return {"Error": "Image not found"}, 404
+    return {"Error": "user not found"}, 404
+
+    
+@app.route("/users/profile_photo/<int:id>", methods=["POST"])
 def update_pic(id:int):
     user = User.query.get(id)
     if not user:
@@ -138,7 +151,7 @@ def update_pic(id:int):
         save_route = os.path.join(app.config['UPLOAD_FOLDER'], new_name)
         file.save(save_route)
 
-        user.profile_photo = save_route
+        user.profile_photo = new_name
         db.session.commit()
         return {"message": f"Profile photo updated for user {user.name}"}, 200
 
