@@ -22,3 +22,5 @@ class DevelopmentConfig:
     }
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    UPLOAD_FOLDER=os.environ.get("UPLOAD_FOLDER")

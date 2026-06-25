@@ -10,6 +10,7 @@ class User(db.Model):
     name = db.Column(db.String(30), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(128), nullable=False)
+    profile_photo= db.Column(db.String(255), nullable=True, default="templates/static/default.png")
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     deleted_at = db.Column(db.DateTime)

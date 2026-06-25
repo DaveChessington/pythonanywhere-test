@@ -1,3 +1,5 @@
+import os
+
 import flask
 from flask import Flask
 from flask_migrate import Migrate
@@ -91,8 +93,11 @@ def delete_user(id:int):
     try:
         user = User.query.get(id)
         if user:
+            pic=os.path.join(app.config['UPLOAD_FOLDER'],user.profile_photo)
             db.session.delete(user)
             db.session.commit()
+            if os.path.exists(pic):
+                os.remove(pic)
             return {"message": f"User with id {id} deleted successfully"}, 200
         else:
             return {"Error": f"User with id {id} not found"}, 404
@@ -118,6 +123,24 @@ def update_user(id:int):
     except Exception as e:
         db.session.rollback()
         return {"Error":str(e)},500
+    
+@app.route("/users/<int:id>/profile_photo", methods=["POST"])
+def update_pic(id:int):
+    user = User.query.get(id)
+    if not user:
+        return {"Error": f"User with id {id} not found"}, 404
+    if 'photo' not in flask.request.files:
+        return {'error': 'invalid image'}, 400
+    file = flask.request.files['photo']
+    if file:
+        extension = os.path.splitext(file.filename)[1]
+        new_name=f"user_{id}{extension}"
+        save_route = os.path.join(app.config['UPLOAD_FOLDER'], new_name)
+        file.save(save_route)
+
+        user.profile_photo = save_route
+        db.session.commit()
+        return {"message": f"Profile photo updated for user {user.name}"}, 200
 
 db.init_app(app)
 
