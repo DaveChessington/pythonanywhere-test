@@ -6,8 +6,11 @@ from flask_migrate import Migrate
 from config import DevelopmentConfig
 from models import db,User
 import datetime
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 app.config.from_object(DevelopmentConfig)
 
@@ -30,7 +33,7 @@ def login():
 
     user = User.query.filter_by(email=mail).first()
     if user and user.password == pwd:
-        return flask.jsonify({"Success": f"User: {user.email} found"})
+        return flask.jsonify({"Success": f"User: {user.email} found","user":user.to_dict()})
     else:
         return flask.jsonify({"Error": "Invalid credentials"})
 
