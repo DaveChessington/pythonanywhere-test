@@ -54,7 +54,7 @@ def add_user():
         return {"message":f"successfully added user {name}"},200
     except Exception as e:
         db.session.rollback()
-        return {"Error":e},500
+        return {"Error":str(e)},500
 
 @app.route("/users")
 def list_users():
