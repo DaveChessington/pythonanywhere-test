@@ -4,7 +4,7 @@ import flask
 from flask import Flask
 from flask_migrate import Migrate
 from config import DevelopmentConfig
-from models import db,User
+from models import db,User,UserRole
 import datetime
 from flask_cors import CORS
 
@@ -13,6 +13,32 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 app.config.from_object(DevelopmentConfig)
+
+@app.cli.command("seed-admin") #custom command to exceute custom function 
+def seed_admin():
+    # run on cli: flask --app flask_app seed-admin
+    print("Verificando existencia de administrador por defecto...")
+    admin_email=os.environ.get("DEFAULT_ADMIN_EMAIL")
+    admin_exists = User.query.filter_by(email=admin_email).first()
+    admin_pass=os.environ.get("DEFAULT_ADMIN_PASS")
+    if not admin_exists:
+        try:
+            default_admin = User(
+                name="Admin",
+                email=admin_email,
+                password=admin_pass,
+                role=UserRole.ADMIN,
+                is_aproved=True,
+            )
+            db.session.add(default_admin)
+            db.session.commit()
+            print("Admin user created successfully")
+            print(f"User:{admin_email}\nPassword:{admin_pass}")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error: {str(e)}")
+    else:
+        print("Admin user already exists")
 
 @app.route('/')
 def hello_world():
