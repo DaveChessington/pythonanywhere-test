@@ -55,13 +55,15 @@ def login():
             mail = flask.request.form.get("email")
             pwd = flask.request.form.get("password")
     except Exception as e:
-        return flask.jsonify({"Error": str(e)})
+        return {"Error": str(e)},500
 
     user = User.query.filter_by(email=mail).first()
     if user and user.password == pwd:
-        return flask.jsonify({"Success": f"User: {user.email} found","user":user.to_dict()})
+        if not user.is_aproved:
+            return {"Error":"Session login not yet aproved by an admin"},403
+        return {"Success": f"User: {user.email} found","user":user.to_dict()},200
     else:
-        return flask.jsonify({"Error": "Invalid credentials"})
+        return {"Error": "Invalid credentials"},403
 
 @app.route('/users', methods=["POST"])
 def add_user():
@@ -74,7 +76,7 @@ def add_user():
     if not name or not email or not pwd:
         return {"Error": "Faltan campos obligatorios (name, email, password)"}, 400
     try:
-        usuario=User(name,email,pwd)
+        usuario=User(name,email,pwd, is_aproved=False)
         db.session.add(usuario)
         db.session.commit()
         return {"message":f"successfully added user {name}"},200

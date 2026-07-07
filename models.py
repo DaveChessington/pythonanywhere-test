@@ -21,12 +21,12 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     deleted_at = db.Column(db.DateTime)
 
-    def __init__(self,name,email,password,role=UserRole.ADMIN,is_aproved=False,profile_photo="default.png"):
+    def __init__(self,name,email,password,role=UserRole.USER,profile_photo="default.png", is_aproved=False):
         self.name=name
         self.email=email
         self.password=password
         self.role=role
-        self.is_aproved=is_aproved
+        self.is_aproved = False if is_aproved is None else is_aproved
         self.profile_photo=profile_photo
 
     def __repr__(self):
