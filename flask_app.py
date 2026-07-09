@@ -146,9 +146,9 @@ def update_user(id:int):
         name=data.get("name")
         email=data.get("email")
         pwd=data.get("password")
-        usuario.name=name if name!=None else usuario.name
-        usuario.email=email if email!=None else usuario.email
-        usuario.password=pwd if pwd!=None else usuario.password
+        usuario.name=name if name and name!="" else usuario.name
+        usuario.email=email if email and email!="" else usuario.email
+        usuario.password=pwd if pwd and pwd!="" else usuario.password
         db.session.commit()
         return {"message":f"successfully updated user {usuario.name}"},200
     except Exception as e:
