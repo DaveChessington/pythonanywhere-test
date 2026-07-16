@@ -5,8 +5,25 @@ import enum
 db = SQLAlchemy()
 
 class UserRole(enum.Enum):
-    ADMIN="admin"
-    USER="user"
+    ADMIN = "ADMIN"
+    USER = "USER"
+
+    @classmethod
+    def normalize(cls, value):
+        if isinstance(value, cls):
+            return value
+        if value is None:
+            return cls.USER
+        if isinstance(value, str):
+            normalized = value.strip().upper()
+            try:
+                return cls[normalized]
+            except KeyError:
+                try:
+                    return cls(normalized)
+                except ValueError:
+                    return cls.USER
+        return cls.USER
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -25,7 +42,7 @@ class User(db.Model):
         self.name=name
         self.email=email
         self.password=password
-        self.role=role
+        self.role=UserRole.normalize(role)
         self.is_aproved = False if is_aproved is None else is_aproved
         self.profile_photo=profile_photo
 
