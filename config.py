@@ -24,3 +24,6 @@ class DevelopmentConfig:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     UPLOAD_FOLDER=os.environ.get("UPLOAD_FOLDER")
+
+    # JWT
+    JWT_secret_key=os.environ.get("JWT_KEY")

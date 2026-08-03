@@ -1,5 +1,6 @@
 import os
 
+import flask_jwt_extended as JWT
 import flask
 from flask import Flask
 from flask_migrate import Migrate
@@ -10,6 +11,7 @@ from flask_cors import CORS
 from sqlalchemy import text
 
 app = Flask(__name__)
+jwt=JWT.JWTManager(app)
 
 CORS(app, resources={r"/*": {"origins": "*"}})
 
@@ -78,7 +80,8 @@ def login():
     if user and user.password == pwd:
         if not user.is_aproved:
             return {"Error":"Session login not yet aproved by an admin"},403
-        return {"Success": f"User: {user.email} found","user":user.to_dict()},200
+        access_token=JWT.create_access_token(identity=user.id)
+        #return {"Success": f"User: {user.email} found","user":user.to_dict()},200
     else:
         return {"Error": "Invalid credentials"},403
 
@@ -129,6 +132,7 @@ def list_users():
         return {"Error":str(e)},500
 
 @app.route("/users/<int:id>")
+@JWT.jwt_required()
 def search_user(id:int):
     try:
         user = User.query.get(id)
@@ -140,6 +144,7 @@ def search_user(id:int):
         return {"Error": str(e)}, 500
 
 @app.route("/users/<int:id>", methods=["DELETE"])
+@JWT.jwt_required()
 def delete_user(id:int):
     try:
         user = User.query.get(id)
@@ -157,6 +162,7 @@ def delete_user(id:int):
         return {"Error": str(e)}, 500
 
 @app.route("/users/<int:id>", methods=["PUT"])
+@JWT.jwt_required()
 def update_user(id:int):
     data = flask.request.get_json()
     try:
@@ -182,6 +188,7 @@ def update_user(id:int):
         return {"Error":str(e)},500
     
 @app.route("/users/profile_photo/<int:id>")
+@JWT.jwt_required()
 def get_pic(id:int):
     user = User.query.get(id)
     if user:
@@ -192,9 +199,9 @@ def get_pic(id:int):
             print(e)
             return {"Error": "Image not found"}, 404
     return {"Error": "user not found"}, 404
-
     
 @app.route("/users/profile_photo/<int:id>", methods=["POST"])
+@JWT.jwt_required()
 def update_pic(id:int):
     user = User.query.get(id)
     if not user:
